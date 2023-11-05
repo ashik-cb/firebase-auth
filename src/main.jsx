@@ -1,6 +1,8 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
+import AuthGuard from "./components/AuthGuard.jsx"
+import GuestGuard from "./components/GuestGuard.jsx"
 import "./index.css"
 import AppLayout from "./layouts/AppLayout.jsx"
 import Home from "./pages/Home"
@@ -15,15 +17,27 @@ const routes = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Home />,
+        element: (
+          <AuthGuard>
+            <Home />
+          </AuthGuard>
+        ),
       },
       {
         path: "register",
-        element: <Register />,
+        element: (
+          <GuestGuard>
+            <Register />
+          </GuestGuard>
+        ),
       },
       {
         path: "login",
-        element: <Login />,
+        element: (
+          <GuestGuard>
+            <Login />
+          </GuestGuard>
+        ),
       },
     ],
   },
