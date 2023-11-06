@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+form {
+  @apply max-w-md mx-auto border p-10 flex flex-col gap-4 my-10;
+}
+
+button {
+  @apply border rounded-md hover:bg-gray-200 text-gray-600 px-6 py-2;
+}
