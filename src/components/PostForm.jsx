@@ -1,9 +1,10 @@
 import { useForm, zodResolver } from "@mantine/form"
 import { addDoc, collection, doc, updateDoc } from "firebase/firestore"
-import { useEffect } from "react"
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { useEffect, useState } from "react"
 import { z } from "zod"
 import { useUser } from "../providers/AuthProvider"
-import { db } from "../utils/firebase"
+import { db, storage } from "../utils/firebase"
 
 const PostForm = ({ id, title, content }) => {
   const newPostSchema = z.object({
@@ -30,18 +31,30 @@ const PostForm = ({ id, title, content }) => {
 
   const { user } = useUser()
 
+  const [file, setFile] = useState(null)
+
   const handleSubmit = async (values) => {
     const collectionRef = id ? doc(db, "posts", id) : collection(db, "posts")
+
     if (id) {
       const doc = await updateDoc(collectionRef, values)
       alert("Post updated successfully")
     } else {
-      const doc = await addDoc(collectionRef, {
-        ...values,
-        author: user.uid,
-      })
-      form.reset()
-      alert("Post added successfully" + doc.id)
+      if (file) {
+        const storageRef = ref(storage, `posts/${file.name}`)
+        const fileUploadRes = await uploadBytes(storageRef, file)
+        const url = await getDownloadURL(fileUploadRes.ref)
+
+        const doc = await addDoc(collectionRef, {
+          ...values,
+          author: user.uid,
+          thumbnail: url,
+        })
+        form.reset()
+        alert("Post added successfully" + doc.id)
+      } else {
+        alert("Please upload a file")
+      }
     }
   }
   return (
@@ -62,6 +75,8 @@ const PostForm = ({ id, title, content }) => {
       {form.errors.content && (
         <p className='text-red-500'>{form.errors.content}</p>
       )}
+
+      <input type='file' onChange={(e) => setFile(e.target.files[0])} />
 
       <button type='submit'>{id ? "Update" : "Add"}</button>
     </form>
